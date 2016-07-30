@@ -120,6 +120,14 @@ public class Console {
                 } catch (NumberFormatException e) {
                     System.err.println("Bad input.");
                 }
+            } else if (input.startsWith("set thread delay")) {
+                try {
+                    int thread = Integer.parseInt(input.split(" ")[3]);
+                    int delay = Integer.parseInt(input.split(" ")[4]);
+                    surveillanceThread.setThreadDelay(thread, delay);
+                } catch (NumberFormatException e) {
+                    System.err.println("Bad input.");
+                }
             } else if (input.equalsIgnoreCase("read records")) {
                 new DataReader().readRecords();
             } else if (input.equalsIgnoreCase("read links")) {
