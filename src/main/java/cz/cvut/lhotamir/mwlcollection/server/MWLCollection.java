@@ -97,7 +97,6 @@ public class MWLCollection implements Runnable {
         String sep = System.getProperty("line.separator");
         ArrayList<NodeRow> nodes = new ArrayList<NodeRow>();
 
-
         Scanner scan = new Scanner(file);
         while (scan.hasNext()) {
             scan.useDelimiter(sep + "|;");
@@ -112,8 +111,6 @@ public class MWLCollection implements Runnable {
             nodes.add(new NodeRow(address, lat, lon, name, newNodeSet));
             System.out.println(nodes.get(nodes.size() - 1));
         }
-
-
 
         Connection con = null;
         PreparedStatement insertNode = null;
@@ -171,8 +168,6 @@ public class MWLCollection implements Runnable {
         ArrayList<Node> nodes = new ArrayList<Node>();
         String sep = System.getProperty("line.separator");
 
-
-
         Scanner scan = new Scanner(file);
 
         while (scan.hasNext()) {
@@ -203,7 +198,6 @@ public class MWLCollection implements Runnable {
             return 0;
         }
 
-
         int linksAdded = 0;
         for (LinkRow linkRow : links) {
             Node node;
@@ -228,7 +222,6 @@ public class MWLCollection implements Runnable {
                 //Logger.getLogger(GSMsber.class.getName()).log(Level.SEVERE, null, ex);
                 continue;
             }
-
 
             List<VariableBinding> interfaces = node.getInterfaces();
             try {
@@ -274,9 +267,9 @@ public class MWLCollection implements Runnable {
 
         snmp.getUSM().addUser(new OctetString("control_user"),
                 new UsmUser(new OctetString("control_user"),
-                AuthMD5.ID,
-                new OctetString("ericsson"),
-                null, null));
+                        AuthMD5.ID,
+                        new OctetString("ericsson"),
+                        null, null));
     }
 
     /**
@@ -289,22 +282,23 @@ public class MWLCollection implements Runnable {
     @Override
     public void run() {
         Connection con = null;
-        PreparedStatement nodesQuery = null, linksQuery = null;
+        PreparedStatement nodesQuery = null, linksQuery = null, ebandQuery = null;
         Statement insertData;
         ResultSet rs = null;
-        ArrayList<Node> nodes = new ArrayList<Node>();
+        ArrayList<Node> nodes = new ArrayList<>();
+        ArrayList<EBandNode> ebandNodes = new ArrayList<>();
         runningSince = (System.currentTimeMillis());
         try {
             con = DriverManager.getConnection("jdbc:postgresql://localhost/gsm", "gsmapplication", "gsmapp");
             if (nodeSet != 0) {
-                nodesQuery = con.prepareStatement("select * from node where nodeset=?;");
+                nodesQuery = con.prepareStatement("select * from node where nodeset=? and nodeid < 10000;");
                 nodesQuery.setInt(1, nodeSet);
-            }else{
-                nodesQuery = con.prepareStatement("select * from node;");
+            } else {
+                nodesQuery = con.prepareStatement("select * from node where nodeid < 10000;");
             }
             linksQuery = con.prepareStatement("select * from link where fromnodeid=?;");
+            ebandQuery = con.prepareStatement("select * from node where nodeid > 10000;");
             insertData = con.createStatement();
-
 
             rs = nodesQuery.executeQuery();
             try {
@@ -312,7 +306,7 @@ public class MWLCollection implements Runnable {
             } catch (IOException ex) {
                 Logger.getLogger(MWLCollection.class.getName()).log(Level.SEVERE, null, ex);
             }
-            
+
             while (rs.next()) {
                 nodes.add(new Node(rs.getString("ipaddress"), rs.getInt("nodeid"), rs.getString("name"), snmp));
             }
@@ -325,6 +319,29 @@ public class MWLCollection implements Runnable {
                 node.setInsert(insertData);
 
             }
+
+            // add E-Band nodes initialization here
+            rs = ebandQuery.executeQuery();
+            while (rs.next()) {
+                ebandNodes.add(new EBandNode(rs.getString("ipaddress"), rs.getInt("nodeid"), rs.getString("name"), snmp));
+            }
+            for (EBandNode ebandNode : ebandNodes) {
+                linksQuery.setInt(1, ebandNode.getNodeID());
+                rs = linksQuery.executeQuery();
+                while (rs.next()) {
+                    ebandNode.setLinkId(rs.getInt("linkid"));
+                    int opNodeID = rs.getInt("tonodeid");
+                    EBandNode opNode = null;
+                    for (EBandNode op : ebandNodes) {
+                        if (op.getNodeID() == opNodeID) {
+                            opNode = op;
+                        }
+                    }
+                    ebandNode.setOppositeNode(opNode);
+                    ebandNode.setInsert(insertData);
+                }
+            }
+
             System.out.println("Starting data collection.");
             while (Running) {
                 for (Node node : nodes) {
@@ -333,6 +350,14 @@ public class MWLCollection implements Runnable {
                     } catch (IOException ex) {
                         Logger.getLogger(MWLCollection.class.getName()).log(Level.SEVERE, null, ex);
                     }
+                    try {
+                        Thread.sleep(delay);
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(MWLCollection.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+                for (EBandNode eBandNode : ebandNodes) {
+                    eBandNode.getValues();
                     try {
                         Thread.sleep(delay);
                     } catch (InterruptedException ex) {

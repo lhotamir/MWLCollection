@@ -39,13 +39,13 @@ public class Node {
     
     /** This is an OID for a MIB sub-tree containing interface names from the whole node.*/
     private static final String ifNameOID = "1.3.6.1.2.1.31.1.1.1.1.";
-    private String ipAddress;
-    private String name;
-    private Statement insert;
-    private int nodeID;
-    private List<Link> links;
-    private Snmp snmp;
-    private UserTarget target;
+    protected String ipAddress;
+    protected String name;
+    protected Statement insert;
+    protected int nodeID;
+    protected List<Link> links;
+    protected Snmp snmp;
+    protected UserTarget target;
 /**
  * In the constructor the values read from the database are stored in new instance of Node 
  * and for each instance new SNMP Target is created too.
