@@ -297,7 +297,7 @@ public class MWLCollection implements Runnable {
                 nodesQuery = con.prepareStatement("select * from node where nodeid < 10000;");
             }
             linksQuery = con.prepareStatement("select * from link where fromnodeid=?;");
-            ebandQuery = con.prepareStatement("select * from node where nodeid > 10000;");
+            ebandQuery = con.prepareStatement("select * from node where nodeid > 10000 and nodeset=?;");
             insertData = con.createStatement();
 
             rs = nodesQuery.executeQuery();
@@ -321,6 +321,7 @@ public class MWLCollection implements Runnable {
             }
 
             // add E-Band nodes initialization here
+            ebandQuery.setInt(1, nodeSet);
             rs = ebandQuery.executeQuery();
             while (rs.next()) {
                 ebandNodes.add(new EBandNode(rs.getString("ipaddress"), rs.getInt("nodeid"), rs.getString("name"), snmp));
@@ -367,6 +368,7 @@ public class MWLCollection implements Runnable {
             }
             rs.close();
             nodesQuery.close();
+            ebandQuery.close();
             con.close();
             insertData.close();
             try {
