@@ -14,6 +14,7 @@ import org.snmp4j.ScopedPDU;
 import org.snmp4j.Snmp;
 import org.snmp4j.event.ResponseEvent;
 import org.snmp4j.smi.OID;
+import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.VariableBinding;
 
 /**
@@ -29,6 +30,7 @@ public class EBandNode extends Node {
 
     public EBandNode(String ipAddress, int nodeID, String name, Snmp snmp) {
         super(ipAddress, nodeID, name, snmp);
+        target.setSecurityName(new OctetString("admin"));
     }
 
     public void setOppositeNode(EBandNode opNode) {
@@ -72,11 +74,12 @@ public class EBandNode extends Node {
             //To change body of generated methods, choose Tools | Templates.
             int outputPowerValue = getOutputPowerValue();
             double inputPowerValue = oppositeNode.getInputPowerValue();
-            insert.executeUpdate("insert into record(linkid,\"time\",frequency,rxpower,txpower) values(" + this.linkId + ",'now'," + "0" + "," + inputPowerValue + "," + outputPowerValue + ")");
+            insert.executeUpdate("insert into record(linkid,\"time\",rxpower,txpower) values(" + this.linkId + ",'now'," + inputPowerValue + "," + outputPowerValue + ")");
         } catch (IOException | SQLException ex) {
             Logger.getLogger(EBandNode.class.getName()).log(Level.SEVERE, null, ex);
         } catch (NullPointerException ex) {
             System.out.println("EBAND TIMEOUT: " + this.toString());
+            ex.printStackTrace();
         }
 
     }

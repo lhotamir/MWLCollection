@@ -270,6 +270,11 @@ public class MWLCollection implements Runnable {
                         AuthMD5.ID,
                         new OctetString("ericsson"),
                         null, null));
+        snmp.getUSM().addUser(new OctetString("admin"),
+                new UsmUser(new OctetString("admin"),
+                        AuthMD5.ID,
+                        new OctetString("Ericsson2016"),
+                        null, null));
     }
 
     /**

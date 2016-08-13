@@ -168,7 +168,7 @@ public class Node {
                 rxPower /= 10;
                 int frequency = responsePDU.getVariable(new OID(baseTXFrequencyOID + link.getTxOID())).toInt();
 
-                insert.executeUpdate("insert into record(linkid,\"time\",frequency,rxpower,txpower) values(" + link.getLinkID() + ",'now'," + frequency + "," + rxPower + "," + txPower + ")");
+                insert.executeUpdate("insert into record(linkid,\"time\",rxpower,txpower) values(" + link.getLinkID() + ",'now'," + rxPower + "," + txPower + ")");
             } catch (NullPointerException e) {
                 System.out.println("TIMEOUT: " + link.toString());
                 continue;
