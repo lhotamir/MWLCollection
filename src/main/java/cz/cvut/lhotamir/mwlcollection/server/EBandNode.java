@@ -23,14 +23,15 @@ import org.snmp4j.smi.VariableBinding;
  */
 public class EBandNode extends Node {
 
-    private static final String inputPowerOID = ".1.3.6.1.4.1.193.223.2.7.1.1.1";
-    private static final String outputPowerOID = ".1.3.6.1.4.1.193.223.2.7.1.1.2";
+    private static final String inputPowerOID = ".1.3.6.1.4.1.193.223.2.7.1.1.1.110101";
+                                                 
+    private static final String outputPowerOID = ".1.3.6.1.4.1.193.223.2.7.1.1.2.110101";
     private int linkId;
     private EBandNode oppositeNode;
 
     public EBandNode(String ipAddress, int nodeID, String name, Snmp snmp) {
         super(ipAddress, nodeID, name, snmp);
-        target.setSecurityName(new OctetString("admin"));
+        target.setSecurityName(new OctetString("swat-user"));
     }
 
     public void setOppositeNode(EBandNode opNode) {
@@ -41,15 +42,15 @@ public class EBandNode extends Node {
         this.linkId = linkId;
     }
 
-    private int getSNMPValue(String oid) throws IOException, NullPointerException {
+    private String getSNMPValue(String oid) throws IOException, NullPointerException {
         PDU pdu = new ScopedPDU();
         pdu.add(new VariableBinding(new OID(oid)));
         pdu.setType(PDU.GET);
-        int value = 0;
+        String value;
 
         ResponseEvent response = snmp.send(pdu, target);
         PDU responsePDU = response.getResponse();
-        value = responsePDU.getVariable(new OID(oid)).toInt();
+        value = responsePDU.getVariable(new OID(oid)).toString();
 
         return value;
     }
@@ -57,14 +58,14 @@ public class EBandNode extends Node {
     public double getInputPowerValue() throws IOException, NullPointerException {
         double value;
 
-        value = getSNMPValue(inputPowerOID);
-        return value / 10;
+        value = Double.parseDouble(getSNMPValue(inputPowerOID));
+        return value;
     }
 
     public int getOutputPowerValue() throws IOException, NullPointerException {
         int value;
 
-        value = getSNMPValue(outputPowerOID);
+        value = Double.valueOf(getSNMPValue(outputPowerOID)).intValue();
         return value;
     }
 
