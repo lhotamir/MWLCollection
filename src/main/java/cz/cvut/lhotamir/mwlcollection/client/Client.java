@@ -7,6 +7,8 @@ package cz.cvut.lhotamir.mwlcollection.client;
 import cz.cvut.lhotamir.mwlcollection.messages.ClientQuitMessage;
 import cz.cvut.lhotamir.mwlcollection.messages.Message;
 import cz.cvut.lhotamir.mwlcollection.messages.ServerStopMessage;
+import cz.cvut.lhotamir.mwlcollection.messages.SetThreadDelayMessage;
+import cz.cvut.lhotamir.mwlcollection.messages.SetThreadDelayResult;
 import cz.cvut.lhotamir.mwlcollection.messages.StartMessage;
 import cz.cvut.lhotamir.mwlcollection.messages.StateMessage;
 import cz.cvut.lhotamir.mwlcollection.messages.StopMessage;
@@ -76,6 +78,20 @@ public class Client {
                     System.out.println("Stopping server");
                     break;
                     
+                }else if(input.startsWith("set thread delay")){
+                    try {
+                    int thread = Integer.parseInt(input.split(" ")[3]);
+                    int delay = Integer.parseInt(input.split(" ")[4]);
+                    out.writeObject(new SetThreadDelayMessage(thread, delay));
+                    SetThreadDelayResult response = (SetThreadDelayResult) in.readObject();
+                    if(response.isSuccess()){
+                        System.out.println("Delay set succesfully");
+                    }else{
+                        System.err.println("Delay setting failed");
+                    }
+                } catch (NumberFormatException e) {
+                    System.err.println("Bad input.");
+                }
                 } else if (input.equalsIgnoreCase("state")) {
                     out.writeObject(new StateMessage());
                     StateMessage reply=(StateMessage)in.readObject();

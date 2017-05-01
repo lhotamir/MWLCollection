@@ -114,7 +114,7 @@ public class SurveillanceThread implements Runnable{
         try{
             sber.get(thread).setDelay(delay);
             return true;
-        }catch(ArrayIndexOutOfBoundsException e){
+        }catch(IndexOutOfBoundsException e){
             System.err.println("Thread number: "+thread+" is not running");
             return false;
         }

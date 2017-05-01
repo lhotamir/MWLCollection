@@ -5,6 +5,8 @@
 package cz.cvut.lhotamir.mwlcollection.server;
 
 import cz.cvut.lhotamir.mwlcollection.messages.Message;
+import cz.cvut.lhotamir.mwlcollection.messages.SetThreadDelayMessage;
+import cz.cvut.lhotamir.mwlcollection.messages.SetThreadDelayResult;
 import cz.cvut.lhotamir.mwlcollection.messages.StartFailMessage;
 import cz.cvut.lhotamir.mwlcollection.messages.StartMessage;
 import cz.cvut.lhotamir.mwlcollection.messages.StartSuccessMessage;
@@ -120,6 +122,13 @@ public class Control implements Runnable {
                         reader = new DataReader(readRec.getFrom(), readRec.getTo(), "*", readRec.getFromNodeName(), readRec.getToNodeName());
                         reader.getRecords(out);
                         break;*/
+                    case 20:
+                        SetThreadDelayMessage delayMes = (SetThreadDelayMessage) mes;
+                        int threadNum = delayMes.getThreadNum();
+                        int delay = delayMes.getThreadNum();
+                        boolean result = surveillanceThread.setThreadDelay(threadNum, delay);
+                        out.writeObject(new SetThreadDelayResult(result));
+                        break;
                 }
                 mes = (Message) in.readObject();
             }
