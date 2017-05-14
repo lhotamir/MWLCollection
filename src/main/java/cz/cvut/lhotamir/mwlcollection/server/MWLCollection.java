@@ -192,7 +192,7 @@ public class MWLCollection implements Runnable {
         try {
             con = DriverManager.getConnection("jdbc:postgresql://localhost/gsm", "gsmapplication", "gsmapp");
             nodeQuery = con.prepareStatement("select * from node where name=?");
-            insertLink = con.prepareStatement("insert into link(ifname,rxoid,txoid,fromnodeid,tonodeid,frequency) values(?,?,?,?,?)");
+            insertLink = con.prepareStatement("insert into link(ifname,rxoid,txoid,fromnodeid,tonodeid,frequency) values(?,?,?,?,?,?)");
         } catch (SQLException ex) {
             Logger.getLogger(MWLCollection.class.getName()).log(Level.SEVERE, null, ex);
             return 0;
@@ -225,11 +225,13 @@ public class MWLCollection implements Runnable {
 
             List<VariableBinding> interfaces = node.getInterfaces();
             try {
+                int interfaceID = Integer.parseInt(getTxOID(interfaces, linkRow.getIfName()));
                 insertLink.setString(1, linkRow.getIfName());
                 insertLink.setInt(2, Integer.parseInt(getRxOID(interfaces, linkRow.getFarEndIfName())));
-                insertLink.setInt(3, Integer.parseInt(getTxOID(interfaces, linkRow.getIfName())));
+                insertLink.setInt(3, interfaceID);
                 insertLink.setInt(4, node.getNodeID());
                 insertLink.setInt(5, farNode.getNodeID());
+                insertLink.setInt(6, node.getLinkFrequency(Integer.toString(interfaceID)));
                 insertLink.executeUpdate();
             } catch (SQLException ex) {
                 System.err.println(ex.getLocalizedMessage());

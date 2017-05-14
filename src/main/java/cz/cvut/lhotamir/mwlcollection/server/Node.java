@@ -138,6 +138,25 @@ public class Node {
         }
         return names;
     }
+    
+    public int getLinkFrequency(String txOID){
+        PDU pdu = new ScopedPDU();
+        pdu.add(new VariableBinding(new OID(baseTXFrequencyOID + txOID)));
+        pdu.setType(PDU.GET);
+        try{
+            ResponseEvent response = snmp.send(pdu, target);
+            PDU responsePDU = response.getResponse();
+            int frequency = responsePDU.getVariable(new OID(baseTXFrequencyOID + txOID)).toInt();
+            return frequency;
+        }catch (NullPointerException ex){
+            System.out.println("TIMEOUT: " + this.toString());
+            return 0;
+        } catch (IOException ex) {
+            Logger.getLogger(Node.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("TIMEOUT: " + this.toString());
+            return 0;
+        }
+    }
 
     /**
      * Reads values from all the links starting at this Node and writes them
@@ -154,7 +173,7 @@ public class Node {
             PDU pdu = new ScopedPDU();
             pdu.add(new VariableBinding(new OID(outputPowerOID + link.getTxOID())));
             pdu.add(new VariableBinding(new OID(inputPowerOID + link.getRxOID())));
-            pdu.add(new VariableBinding(new OID(baseTXFrequencyOID + link.getTxOID())));
+            //pdu.add(new VariableBinding(new OID(baseTXFrequencyOID + link.getTxOID())));
             pdu.setType(PDU.GET);
 
 
@@ -166,7 +185,7 @@ public class Node {
 
                 double rxPower = responsePDU.getVariable(new OID(inputPowerOID + link.getRxOID())).toInt();
                 rxPower /= 10;
-                int frequency = responsePDU.getVariable(new OID(baseTXFrequencyOID + link.getTxOID())).toInt();
+                //int frequency = responsePDU.getVariable(new OID(baseTXFrequencyOID + link.getTxOID())).toInt();
 
                 insert.executeUpdate("insert into record(linkid,\"time\",rxpower,txpower) values(" + link.getLinkID() + ",'now'," + rxPower + "," + txPower + ")");
             } catch (NullPointerException e) {
